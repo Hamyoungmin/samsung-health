@@ -32,8 +32,9 @@ export default function RootLayout({
     <html
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable}`}
+      style={{ height: '100%' }}
     >
-      <body>{children}</body>
+      <body style={{ height: '100%', overflow: 'hidden' }}>{children}</body>
     </html>
   );
 }
