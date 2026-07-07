@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import DiscoverContent from '@/components/DiscoverContent';
+import FitnessContent from '@/components/FitnessContent';
 import '@/styles/app-view.css';
+
+type AppScreen = 'home' | 'discover' | 'fitness';
 
 /* ───────── 탭 아이콘 ───────── */
 const TabIcons = {
@@ -81,24 +85,92 @@ function ColorCard({
   );
 }
 
-/* ───────── 메인 앱 콘텐츠 ───────── */
-function SamsungHealthContent() {
-  const [activeTab, setActiveTab] = useState(0);
-  const [activeNav, setActiveNav] = useState(0);
+/* ───────── 하단 탭바 ───────── */
+const NAV_TABS = [
+  { label: '홈', Icon: TabIcons.Home },
+  { label: '투게더', Icon: TabIcons.Together },
+  { label: '발견', Icon: TabIcons.Discover, badge: true },
+  { label: '피트니스', Icon: TabIcons.Fitness },
+];
+
+function BottomTabBar({
+  activeNav,
+  onNavClick,
+  variant,
+  floatingTheme = 'discover',
+}: {
+  activeNav: number;
+  onNavClick: (i: number) => void;
+  variant: 'home' | 'floating';
+  floatingTheme?: 'discover' | 'fitness';
+}) {
+  if (variant === 'floating') {
+    return (
+      <div className={`disc-tabbar-wrap${floatingTheme === 'fitness' ? ' fit-tabbar-wrap' : ''}`}>
+        <div className="disc-tabbar">
+          {NAV_TABS.map((tab, i) => (
+            <button
+              key={tab.label}
+              className={`disc-tab-item${activeNav === i ? ' active' : ''}`}
+              onClick={() => onNavClick(i)}
+            >
+              <div className={`disc-tab-icon${tab.badge && activeNav !== i ? ' disc-tab-badge' : ''}`}>
+                <tab.Icon />
+              </div>
+              <span className="disc-tab-label">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+        <button className="disc-scan-btn" aria-label="스캔">
+          <TabIcons.Scan />
+        </button>
+        <div className="sh-home-bar disc-home-bar"><span /></div>
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* 상태바 */}
+      <div className="sh-tabbar">
+        {[
+          ...NAV_TABS,
+          { label: '', Icon: TabIcons.Scan },
+        ].map((tab, i) => (
+          <button
+            key={i}
+            className={`sh-tab-item${activeNav === i ? ' active' : ''}`}
+            onClick={() => onNavClick(i)}
+          >
+            <div className={`sh-tab-icon-wrap${tab.badge ? ' sh-tab-badge' : ''}`}>
+              <tab.Icon />
+            </div>
+            {tab.label && <span className="sh-tab-label">{tab.label}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="sh-home-bar"><span /></div>
+    </>
+  );
+}
+
+/* ───────── 홈 화면 콘텐츠 ───────── */
+function HomeContent({
+  activeTab,
+  setActiveTab,
+}: {
+  activeTab: number;
+  setActiveTab: (i: number) => void;
+}) {
+  return (
+    <>
       <div className="sh-statusbar">
         <span className="sh-statusbar-time">6:48</span>
         <div className="sh-statusbar-right">
-          {/* 간단 아이콘들 */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#2a2a3a"/></svg>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 13v-2" strokeLinecap="round"/></svg>
         </div>
       </div>
 
-      {/* 헤더 */}
       <div className="sh-header">
         <span className="sh-header-title">Samsung Health</span>
         <div className="sh-header-actions">
@@ -111,7 +183,6 @@ function SamsungHealthContent() {
         </div>
       </div>
 
-      {/* 카테고리 탭 */}
       <div className="sh-tabs" role="tablist">
         {CatIcons.map((cat, i) => (
           <button
@@ -126,10 +197,7 @@ function SamsungHealthContent() {
         ))}
       </div>
 
-      {/* 스크롤 콘텐츠 */}
       <div className="sh-scroll">
-
-        {/* 동기부여 카드 */}
         <div className="sh-motive-card">
           <div className="sh-motive-title">아직 시간이 있어요! 오늘 활동 목표를 달성해 보세요</div>
           <div className="sh-motive-body">
@@ -254,51 +322,82 @@ function SamsungHealthContent() {
         {/* Knox + 홈화면 편집 */}
         <div className="sh-knox">Secured by Knox</div>
         <button className="sh-edit-home">홈 화면 편집</button>
-        {/* 하단 여유 공간 */}
         <div style={{ height: 8 }} />
       </div>
+    </>
+  );
+}
 
-      {/* 하단 탭바 */}
-      <div className="sh-tabbar">
-        {[
-          { label: '홈', Icon: TabIcons.Home },
-          { label: '투게더', Icon: TabIcons.Together },
-          { label: '발견', Icon: TabIcons.Discover, badge: true },
-          { label: '피트니스', Icon: TabIcons.Fitness },
-          { label: '', Icon: TabIcons.Scan },
-        ].map((tab, i) => (
-          <button
-            key={i}
-            className={`sh-tab-item${activeNav === i ? ' active' : ''}`}
-            onClick={() => setActiveNav(i)}
-          >
-            <div className={`sh-tab-icon-wrap${tab.badge ? ' sh-tab-badge' : ''}`}>
-              <tab.Icon />
-            </div>
-            {tab.label && <span className="sh-tab-label">{tab.label}</span>}
-          </button>
-        ))}
+/* ───────── 메인 앱 콘텐츠 ───────── */
+const DEFAULT_NAV: Record<AppScreen, number> = { home: 0, discover: 2, fitness: 3 };
+
+function SamsungHealthContent({ defaultScreen = 'home' }: { defaultScreen?: AppScreen }) {
+  const [screen, setScreen] = useState<AppScreen>(defaultScreen);
+  const [activeTab, setActiveTab] = useState(0);
+  const [activeNav, setActiveNav] = useState(DEFAULT_NAV[defaultScreen]);
+
+  const handleNavClick = (i: number) => {
+    setActiveNav(i);
+    if (i === 0) setScreen('home');
+    else if (i === 2) setScreen('discover');
+    else if (i === 3) setScreen('fitness');
+  };
+
+  return (
+    <>
+      <div className={`sh-screen${screen !== 'home' ? ` sh-screen-${screen}` : ''}`}>
+        {screen === 'home' && (
+          <HomeContent activeTab={activeTab} setActiveTab={setActiveTab} />
+        )}
+        {screen === 'discover' && <DiscoverContent />}
+        {screen === 'fitness' && <FitnessContent />}
       </div>
 
-      {/* 홈 인디케이터 */}
-      <div className="sh-home-bar"><span /></div>
+      <BottomTabBar
+        activeNav={activeNav}
+        onNavClick={handleNavClick}
+        variant={screen === 'home' ? 'home' : 'floating'}
+        floatingTheme={screen === 'fitness' ? 'fitness' : 'discover'}
+      />
     </>
+  );
+}
+
+function PhoneMockup({ defaultScreen = 'home' }: { defaultScreen?: AppScreen }) {
+  return (
+    <div className="desktop-phone-wrap">
+      <div className="desktop-phone-glow" />
+      <div className="d-phone">
+        <div className="d-phone-island">
+          <div className="d-phone-island-cam" />
+        </div>
+        <div className="d-phone-screen">
+          <SamsungHealthContent defaultScreen={defaultScreen} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneArrowDivider() {
+  return (
+    <div className="phones-divider">
+      <div className="phones-arrow" aria-hidden="true">
+        <span className="phones-arrow-shaft" />
+        <span className="phones-arrow-head">›</span>
+      </div>
+      <span className="phones-arrow-label">After</span>
+    </div>
   );
 }
 
 export default function AppView() {
   return (
     <div className="app-shell">
-      <div className="desktop-phone-wrap">
-        <div className="desktop-phone-glow" />
-        <div className="d-phone">
-          <div className="d-phone-island">
-            <div className="d-phone-island-cam" />
-          </div>
-          <div className="d-phone-screen">
-            <SamsungHealthContent />
-          </div>
-        </div>
+      <div className="phones-row">
+        <PhoneMockup defaultScreen="home" />
+        <PhoneArrowDivider />
+        <PhoneMockup defaultScreen="discover" />
       </div>
     </div>
   );
