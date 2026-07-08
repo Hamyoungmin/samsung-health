@@ -4,6 +4,7 @@
 html, body { height: 100%; overflow: hidden; }
 
 .app-shell {
+  --app-ui-scale: 0.67;
   width: 100vw;
   height: 100svh;
   background: linear-gradient(180deg,
@@ -27,6 +28,8 @@ html, body { height: 100%; overflow: hidden; }
   max-width: 1280px;
   padding: 0 4rem;
   gap: 5rem;
+  transform: scale(var(--app-ui-scale));
+  transform-origin: center;
 }
 
 .phones-divider {
@@ -2395,6 +2398,7 @@ html, body { height: 100%; overflow: hidden; }
     max-width: none;
     padding: 0;
     gap: 0;
+    transform: none;
   }
 
   .phones-row .desktop-phone-wrap:last-child {
