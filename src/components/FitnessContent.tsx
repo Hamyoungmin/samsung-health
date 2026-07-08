@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 /* 사용자 제공 이미지 */
 const LOCAL = {
   newGolf: '/fitness/new-content-golf.png',
@@ -191,11 +193,20 @@ const providers = [
   { name: 'LILLIUS', img: LOCAL.provLillius },
 ];
 
+const fitnessMenuItems = [
+  { label: '프로모션', hasBadge: true },
+  { label: '공지사항', hasBadge: true },
+  { label: '개인정보 처리방침' },
+  { label: '설정' },
+];
+
 export default function FitnessContent() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <>
       <div className="sh-statusbar fit-statusbar">
-        <span className="sh-statusbar-time">5:59</span>
+        <span className="sh-statusbar-time">6:48</span>
         <div className="sh-statusbar-right">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#2a2a3a"/></svg>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 13v-2" strokeLinecap="round"/></svg>
@@ -211,10 +222,38 @@ export default function FitnessContent() {
           <button className="fit-action-btn" aria-label="목록">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
           </button>
-          <button className="fit-action-btn fit-action-menu" aria-label="더보기">
+          <button
+            className="fit-action-btn fit-action-menu"
+            aria-label="더보기"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
             <span className="disc-menu-dot" />
             <span className="disc-notify-dot" />
           </button>
+        </div>
+      </div>
+
+      <div className={`sh-home-menu-layer${menuOpen ? ' open' : ''}`}>
+        <button
+          className="sh-home-menu-backdrop"
+          aria-label="메뉴 닫기"
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={() => setMenuOpen(false)}
+        />
+        <div className="sh-home-menu-panel compact-more-menu-panel" role="menu" aria-label="피트니스 더보기 메뉴" aria-hidden={!menuOpen}>
+          {fitnessMenuItems.map((item) => (
+            <button
+              key={item.label}
+              className="sh-home-menu-item"
+              role="menuitem"
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span>{item.label}</span>
+              {item.hasBadge && <span className="sh-home-menu-badge" aria-label="새 소식" />}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -234,89 +273,110 @@ export default function FitnessContent() {
           <RadarChart />
         </div>
 
-        <SectionHeader title="새로운 콘텐츠" link />
-        <div className="fit-hscroll">
-          {newContent.map((v) => <VideoCard key={v.title} {...v} />)}
+        <div className="fit-rounded-section">
+          <SectionHeader title="새로운 콘텐츠" link />
+          <div className="fit-hscroll">
+            {newContent.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
         </div>
 
-        <SectionHeader title="릴리스토어" />
-        <div className="fit-hscroll fit-store-scroll">
-          {storeCards.map((c) => (
-            <div key={c.label} className="fit-store-card fit-store-native">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.img} alt="" className="fit-store-img-native" loading="lazy" />
-              <div className="fit-store-label fit-store-label-below">
-                {c.label.split('\n').map((l, i, arr) => (
-                  <span key={i}>{l}{i < arr.length - 1 && <br />}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <SectionHeader title="건강한 달리기를 위한 필수 트레이닝" link />
-        <div className="fit-hscroll">
-          {runningVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="여름 체력을 채우는 하루 10분 운동" link />
-        <div className="fit-hscroll">
-          {summerVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="스포츠 스타의 운동 노하우" link />
-        <div className="fit-hscroll">
-          {sportsVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="집에서 시작하는 전문 홈트레이닝" link />
-        <div className="fit-hscroll">
-          {homeVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="Zumba® - 피트니스를 즐겁게" link />
-        <div className="fit-hscroll">
-          {zumbaVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="집에서 할 수 있는 최적의 운동 루틴" link />
-        <div className="fit-hscroll">
-          {routineVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="신나고 재미있게! 홈트 습관 만들기" link />
-        <div className="fit-hscroll">
-          {habitVideos.map((v) => <VideoCard key={v.title} {...v} />)}
-        </div>
-
-        <SectionHeader title="파트너 서비스" />
-        <div className="fit-hscroll fit-partner-scroll">
-          {partners.map((p) => (
-            <div key={p.title} className="fit-partner-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.img} alt="" className="fit-partner-img-native" loading="lazy" />
-              <div className="fit-partner-title">{p.title}</div>
-            </div>
-          ))}
-        </div>
-
-        <SectionHeader title="프로그램 제공자" />
-        <div className="fit-providers">
-          {providers.map((p) => (
-            <div key={p.name} className="fit-provider">
-              <div className="fit-provider-icon">
+        <div className="fit-rounded-section">
+          <SectionHeader title="릴리스토어" />
+          <div className="fit-hscroll fit-store-scroll">
+            {storeCards.map((c) => (
+              <div key={c.label} className="fit-store-card fit-store-native">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.img} alt={p.name} loading="lazy" />
+                <img src={c.img} alt="" className="fit-store-img-native" loading="lazy" />
+                <div className="fit-store-label fit-store-label-below">
+                  {c.label.split('\n').map((l, i, arr) => (
+                    <span key={i}>{l}{i < arr.length - 1 && <br />}</span>
+                  ))}
+                </div>
               </div>
-              <span className="fit-provider-name">{p.name}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="건강한 달리기를 위한 필수 트레이닝" link />
+          <div className="fit-hscroll">
+            {runningVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="여름 체력을 채우는 하루 10분 운동" link />
+          <div className="fit-hscroll">
+            {summerVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="스포츠 스타의 운동 노하우" link />
+          <div className="fit-hscroll">
+            {sportsVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="집에서 시작하는 전문 홈트레이닝" link />
+          <div className="fit-hscroll">
+            {homeVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="Zumba® - 피트니스를 즐겁게" link />
+          <div className="fit-hscroll">
+            {zumbaVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="집에서 할 수 있는 최적의 운동 루틴" link />
+          <div className="fit-hscroll">
+            {routineVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="신나고 재미있게! 홈트 습관 만들기" link />
+          <div className="fit-hscroll">
+            {habitVideos.map((v) => <VideoCard key={v.title} {...v} />)}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="파트너 서비스" />
+          <div className="fit-hscroll fit-partner-scroll">
+            {partners.map((p) => (
+              <div key={p.title} className="fit-partner-card">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.img} alt="" className="fit-partner-img-native" loading="lazy" />
+                <div className="fit-partner-title">{p.title}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="fit-rounded-section">
+          <SectionHeader title="프로그램 제공자" />
+          <div className="fit-providers">
+            {providers.map((p) => (
+              <div key={p.name} className="fit-provider">
+                <div className="fit-provider-icon">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.img} alt={p.name} loading="lazy" />
+                </div>
+                <span className="fit-provider-name">{p.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={{ height: 90 }} />
       </div>
 
-      <button className="fit-scroll-top" aria-label="맨 위로">^</button>
     </>
   );
 }
