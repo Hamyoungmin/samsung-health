@@ -1,13 +1,15 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useState } from 'react';
+import type { DragEvent, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import DiscoverContent from '@/components/DiscoverContent';
 import FitnessContent from '@/components/FitnessContent';
 import '@/styles/app-view.css';
 
 type MainScreen = 'home' | 'together' | 'discover' | 'fitness';
 type AppScreen = MainScreen | 'quickAdd';
+type PhoneSide = 'left' | 'right';
+type RightHomeCategoryKey = 'exercise' | 'health' | 'nutrition' | 'life';
 
 /* ───────── 탭 아이콘 ───────── */
 const TabIcons = {
@@ -181,6 +183,135 @@ const homeMenuItems = [
   { label: '개인정보 처리방침' },
   { label: '설정' },
 ];
+
+const rightHomeCategories: Array<{
+  key: RightHomeCategoryKey;
+  title: string;
+  subtitle: string;
+  tone: string;
+  highlights: Array<{ label: string; value: string; meta: string }>;
+}> = [
+  {
+    key: 'life',
+    title: '생활',
+    subtitle: '일일 활동, 걸음, 수면',
+    tone: 'purple',
+    highlights: [
+      { label: '일일 활동', value: '35%', meta: '목표 진행' },
+      { label: '걸음', value: '2,090', meta: '6,000 목표' },
+      { label: '수면', value: '7시간 20분', meta: '어제' },
+    ],
+  },
+  {
+    key: 'exercise',
+    title: '운동',
+    subtitle: '운동, 운동 기록, 에너지',
+    tone: 'green',
+    highlights: [
+      { label: '운동', value: '시작', meta: '빠른 기록' },
+      { label: '운동 기록', value: '25:33', meta: '2개 세션' },
+      { label: '에너지 점수', value: '확인', meta: '오늘 컨디션' },
+    ],
+  },
+  {
+    key: 'health',
+    title: '건강',
+    subtitle: '심박수, 혈압, 혈당',
+    tone: 'pink',
+    highlights: [
+      { label: '심박수', value: '72', meta: 'bpm' },
+      { label: '혈압', value: '기록 전', meta: '최근 없음' },
+      { label: '혈당', value: '기록 전', meta: '최근 없음' },
+    ],
+  },
+  {
+    key: 'nutrition',
+    title: '식습관',
+    subtitle: '음식과 물 기록',
+    tone: 'orange',
+    highlights: [
+      { label: '음식', value: '0', meta: '1,952 kcal 목표' },
+      { label: '물', value: '0', meta: '2,000 ml 목표' },
+    ],
+  },
+];
+
+const rightCategoryDetails: Record<RightHomeCategoryKey, Array<{ label: string; value: string; meta: string }>> = {
+  exercise: [
+    { label: '운동', value: '시작', meta: '운동을 바로 기록해 보세요' },
+    { label: '이번 주 운동 기록', value: '25:33', meta: '이번 주 2개 세션' },
+    { label: '에너지 점수', value: '확인', meta: '오늘 컨디션과 회복 상태' },
+  ],
+  health: [
+    { label: '심박수', value: '72 bpm', meta: '최근 측정' },
+    { label: '혈압', value: '기록 전', meta: '꾸준히 기록해 보세요' },
+    { label: '혈당', value: '기록 전', meta: '혈당 변화를 관리' },
+    { label: '최종당화물 지수(HbA1c)', value: '알아보기', meta: '장기 혈당 관리 지표' },
+    { label: '혈중 산소', value: '측정 전', meta: '내 몸의 산소 상태 확인' },
+    { label: '심장 건강', value: '확인', meta: '심장 건강 정보를 모아보기' },
+    { label: '스트레스', value: '낮음', meta: '호흡으로 관리해 보세요' },
+    { label: '생체 징후', value: '확인', meta: '주요 건강 신호 보기' },
+    { label: '혈관 스트레스', value: '측정 전', meta: '혈관 상태 변화를 확인' },
+  ],
+  nutrition: [
+    { label: '음식', value: '0 / 1,952 kcal', meta: '오늘 섭취 기록' },
+    { label: '물', value: '0 / 2,000 ml', meta: '수분 섭취 목표' },
+  ],
+  life: [
+    { label: '일일 활동', value: '35%', meta: '오늘 목표 진행률' },
+    { label: '걸음', value: '2,090 / 6,000 걸음', meta: '오늘 목표의 35%' },
+    { label: '수면', value: '7시간 20분', meta: '어제 수면 기록' },
+    { label: '체중/체성분', value: '기록 전', meta: '몸 상태 변화를 확인' },
+    { label: '약', value: '추가 전', meta: '복용 알림을 받을 수 있어요' },
+    { label: '생리 주기', value: '기록 전', meta: '주기 변화를 확인' },
+    { label: '건강 기록', value: '확인', meta: '검사 결과와 기록 관리' },
+    { label: '항산화 지수', value: '알아보기', meta: '생활 습관 개선 정보' },
+  ],
+};
+
+const RIGHT_CATEGORY_ORDER_STORAGE_KEY = 'samsung-health-category-order';
+const RIGHT_DETAIL_ORDERS_STORAGE_KEY = 'samsung-health-detail-orders';
+const RIGHT_GUIDE_DISMISSED_STORAGE_KEY = 'samsung-health-guide-dismissed';
+
+const defaultRightCategoryOrder = rightHomeCategories.map((category) => category.key);
+const defaultRightDetailOrders: Record<RightHomeCategoryKey, string[]> = {
+  exercise: rightCategoryDetails.exercise.map((item) => item.label),
+  health: rightCategoryDetails.health.map((item) => item.label),
+  nutrition: rightCategoryDetails.nutrition.map((item) => item.label),
+  life: rightCategoryDetails.life.map((item) => item.label),
+};
+
+function isRightHomeCategoryKey(value: unknown): value is RightHomeCategoryKey {
+  return defaultRightCategoryOrder.includes(value as RightHomeCategoryKey);
+}
+
+function normalizeCategoryOrder(value: unknown) {
+  if (!Array.isArray(value)) return defaultRightCategoryOrder;
+
+  const savedOrder = value.filter(isRightHomeCategoryKey);
+  const uniqueSavedOrder = savedOrder.filter((key, index) => savedOrder.indexOf(key) === index);
+  const missingKeys = defaultRightCategoryOrder.filter((key) => !uniqueSavedOrder.includes(key));
+
+  return [...uniqueSavedOrder, ...missingKeys];
+}
+
+function normalizeDetailOrders(value: unknown) {
+  if (!value || typeof value !== 'object') return defaultRightDetailOrders;
+
+  const savedOrders = value as Partial<Record<RightHomeCategoryKey, unknown>>;
+
+  return defaultRightCategoryOrder.reduce<Record<RightHomeCategoryKey, string[]>>((orders, categoryKey) => {
+    const validLabels = defaultRightDetailOrders[categoryKey];
+    const savedLabels = Array.isArray(savedOrders[categoryKey])
+      ? savedOrders[categoryKey].filter((label): label is string => typeof label === 'string' && validLabels.includes(label))
+      : [];
+    const uniqueSavedLabels = savedLabels.filter((label, index) => savedLabels.indexOf(label) === index);
+    const missingLabels = validLabels.filter((label) => !uniqueSavedLabels.includes(label));
+
+    orders[categoryKey] = [...uniqueSavedLabels, ...missingLabels];
+    return orders;
+  }, {} as Record<RightHomeCategoryKey, string[]>);
+}
 
 const togetherMenuItems = [
   { label: '프로모션', hasBadge: true },
@@ -399,9 +530,11 @@ function TogetherContent() {
 function HomeContent({
   activeTab,
   setActiveTab,
+  phoneSide,
 }: {
   activeTab: number;
   setActiveTab: (i: number) => void;
+  phoneSide: PhoneSide;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -594,9 +727,463 @@ function HomeContent({
 
         {/* Knox + 홈화면 편집 */}
         <div className="sh-knox">Secured by Knox</div>
-        <button className="sh-edit-home">홈 화면 편집</button>
-        <div style={{ height: 8 }} />
+        {phoneSide === 'left' && (
+          <button className="sh-edit-home">홈 화면 편집</button>
+        )}
+        {phoneSide === 'left' && <div style={{ height: 8 }} />}
       </div>
+    </>
+  );
+}
+
+function RightHomeContent({
+  shouldShowGuideModal,
+  onGuideShown,
+  onGuideDismissPermanently,
+}: {
+  shouldShowGuideModal: boolean;
+  onGuideShown: () => void;
+  onGuideDismissPermanently: () => void;
+}) {
+  const [selectedCategory, setSelectedCategory] = useState<RightHomeCategoryKey | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(shouldShowGuideModal);
+  const [guideClosing, setGuideClosing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [draggedCategory, setDraggedCategory] = useState<RightHomeCategoryKey | null>(null);
+  const [draggedDetailItem, setDraggedDetailItem] = useState<string | null>(null);
+  const autoScrollFrameRef = useRef<number | null>(null);
+  const autoScrollVelocityRef = useRef(0);
+  const autoScrollContainerRef = useRef<HTMLElement | null>(null);
+  const guideCloseTimerRef = useRef<number | null>(null);
+  const [categoryOrder, setCategoryOrder] = useState<RightHomeCategoryKey[]>(defaultRightCategoryOrder);
+  const [detailOrders, setDetailOrders] = useState<Record<RightHomeCategoryKey, string[]>>(defaultRightDetailOrders);
+  const [storedOrderLoaded, setStoredOrderLoaded] = useState(false);
+  const selected = selectedCategory
+    ? rightHomeCategories.find((category) => category.key === selectedCategory)
+    : null;
+  const orderedCategories = categoryOrder
+    .map((key) => rightHomeCategories.find((category) => category.key === key))
+    .filter((category): category is (typeof rightHomeCategories)[number] => Boolean(category));
+  const orderedDetailItems = selected
+    ? detailOrders[selected.key]
+        .map((label) => rightCategoryDetails[selected.key].find((item) => item.label === label))
+        .filter((item): item is (typeof rightCategoryDetails)[RightHomeCategoryKey][number] => Boolean(item))
+    : [];
+
+  const stopAutoScroll = () => {
+    autoScrollVelocityRef.current = 0;
+    autoScrollContainerRef.current = null;
+
+    if (autoScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+  };
+
+  const runAutoScroll = () => {
+    const scrollContainer = autoScrollContainerRef.current;
+    const velocity = autoScrollVelocityRef.current;
+
+    if (!scrollContainer || velocity === 0) {
+      stopAutoScroll();
+      return;
+    }
+
+    scrollContainer.scrollTop += velocity;
+    autoScrollFrameRef.current = window.requestAnimationFrame(runAutoScroll);
+  };
+
+  useEffect(() => () => {
+    stopAutoScroll();
+
+    if (guideCloseTimerRef.current !== null) {
+      window.clearTimeout(guideCloseTimerRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadStoredOrderTimer = window.setTimeout(() => {
+      try {
+        const savedCategoryOrder = window.localStorage.getItem(RIGHT_CATEGORY_ORDER_STORAGE_KEY);
+        const savedDetailOrders = window.localStorage.getItem(RIGHT_DETAIL_ORDERS_STORAGE_KEY);
+
+        if (savedCategoryOrder) {
+          setCategoryOrder(normalizeCategoryOrder(JSON.parse(savedCategoryOrder)));
+        }
+
+        if (savedDetailOrders) {
+          setDetailOrders(normalizeDetailOrders(JSON.parse(savedDetailOrders)));
+        }
+      } catch {
+        setCategoryOrder(defaultRightCategoryOrder);
+        setDetailOrders(defaultRightDetailOrders);
+      } finally {
+        setStoredOrderLoaded(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(loadStoredOrderTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!storedOrderLoaded) return;
+
+    window.localStorage.setItem(RIGHT_CATEGORY_ORDER_STORAGE_KEY, JSON.stringify(categoryOrder));
+  }, [categoryOrder, storedOrderLoaded]);
+
+  useEffect(() => {
+    if (!storedOrderLoaded) return;
+
+    window.localStorage.setItem(RIGHT_DETAIL_ORDERS_STORAGE_KEY, JSON.stringify(detailOrders));
+  }, [detailOrders, storedOrderLoaded]);
+
+  useEffect(() => {
+    if (shouldShowGuideModal && !showGuideModal) {
+      const showGuideTimer = window.setTimeout(() => setShowGuideModal(true), 0);
+      return () => window.clearTimeout(showGuideTimer);
+    }
+  }, [shouldShowGuideModal, showGuideModal]);
+
+  useEffect(() => {
+    if (showGuideModal) {
+      onGuideShown();
+    }
+  }, [showGuideModal, onGuideShown]);
+
+  const moveCategory = (sourceKey: RightHomeCategoryKey, targetKey: RightHomeCategoryKey) => {
+    if (sourceKey === targetKey) return;
+
+    setCategoryOrder((currentOrder) => {
+      const sourceIndex = currentOrder.indexOf(sourceKey);
+      const targetIndex = currentOrder.indexOf(targetKey);
+      if (sourceIndex < 0 || targetIndex < 0) return currentOrder;
+
+      const nextOrder = [...currentOrder];
+      const [movedKey] = nextOrder.splice(sourceIndex, 1);
+      nextOrder.splice(targetIndex, 0, movedKey);
+      return nextOrder;
+    });
+  };
+
+  const moveDetailItem = (categoryKey: RightHomeCategoryKey, sourceLabel: string, targetLabel: string) => {
+    if (sourceLabel === targetLabel) return;
+
+    setDetailOrders((currentOrders) => {
+      const currentOrder = currentOrders[categoryKey];
+      const sourceIndex = currentOrder.indexOf(sourceLabel);
+      const targetIndex = currentOrder.indexOf(targetLabel);
+      if (sourceIndex < 0 || targetIndex < 0) return currentOrders;
+
+      const nextOrder = [...currentOrder];
+      const [movedLabel] = nextOrder.splice(sourceIndex, 1);
+      nextOrder.splice(targetIndex, 0, movedLabel);
+      return {
+        ...currentOrders,
+        [categoryKey]: nextOrder,
+      };
+    });
+  };
+
+  const autoScrollDuringDrag = (event: DragEvent<HTMLElement>) => {
+    const scrollContainer = event.currentTarget.closest('.sh-scroll') as HTMLElement | null;
+    if (!scrollContainer) return;
+
+    const rect = scrollContainer.getBoundingClientRect();
+    const topEdgeSize = 44;
+    const bottomEdgeSize = 20;
+    const maxVelocity = 4.6;
+    const distanceFromTop = event.clientY - rect.top;
+    const distanceFromBottom = rect.bottom - event.clientY;
+    let nextVelocity = 0;
+
+    if (distanceFromTop < topEdgeSize) {
+      const intensity = (topEdgeSize - distanceFromTop) / topEdgeSize;
+      nextVelocity = -Math.max(0.6, maxVelocity * intensity);
+    } else if (distanceFromBottom < bottomEdgeSize) {
+      const intensity = (bottomEdgeSize - distanceFromBottom) / bottomEdgeSize;
+      nextVelocity = Math.max(0.6, maxVelocity * intensity);
+    }
+
+    if (nextVelocity === 0) {
+      stopAutoScroll();
+      return;
+    }
+
+    autoScrollContainerRef.current = scrollContainer;
+    autoScrollVelocityRef.current = nextVelocity;
+
+    if (autoScrollFrameRef.current === null) {
+      autoScrollFrameRef.current = window.requestAnimationFrame(runAutoScroll);
+    }
+  };
+
+  const handleDragStart = (event: DragEvent<HTMLButtonElement>, key: RightHomeCategoryKey) => {
+    if (!editMode || selected) return;
+
+    setDraggedCategory(key);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', key);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLButtonElement>) => {
+    if (!editMode) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    autoScrollDuringDrag(event);
+  };
+
+  const handleScrollAreaDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (!editMode) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    autoScrollDuringDrag(event);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLButtonElement>, targetKey: RightHomeCategoryKey) => {
+    if (!editMode) return;
+
+    event.preventDefault();
+    const sourceKey = (event.dataTransfer.getData('text/plain') || draggedCategory) as RightHomeCategoryKey | null;
+    if (sourceKey) moveCategory(sourceKey, targetKey);
+    setDraggedCategory(null);
+    stopAutoScroll();
+  };
+
+  const handleDetailDragStart = (event: DragEvent<HTMLButtonElement>, label: string) => {
+    if (!editMode || !selected) return;
+
+    setDraggedDetailItem(label);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', label);
+  };
+
+  const handleDetailDrop = (event: DragEvent<HTMLButtonElement>, targetLabel: string) => {
+    if (!editMode || !selected) return;
+
+    event.preventDefault();
+    const sourceLabel = event.dataTransfer.getData('text/plain') || draggedDetailItem;
+    if (sourceLabel) moveDetailItem(selected.key, sourceLabel, targetLabel);
+    setDraggedDetailItem(null);
+    stopAutoScroll();
+  };
+
+  const closeGuideModal = (categoryKey: RightHomeCategoryKey | null) => {
+    setGuideClosing(true);
+
+    guideCloseTimerRef.current = window.setTimeout(() => {
+      setShowGuideModal(false);
+      setGuideClosing(false);
+
+      if (categoryKey) {
+        setEditMode(false);
+        setSelectedCategory(categoryKey);
+      }
+    }, 520);
+  };
+
+  const handleGuideSelect = (categoryKey: RightHomeCategoryKey | null) => {
+    if (guideClosing) return;
+    closeGuideModal(categoryKey);
+  };
+
+  const handleGuideDismissPermanently = () => {
+    if (guideClosing) return;
+    onGuideDismissPermanently();
+    closeGuideModal(null);
+  };
+
+  return (
+    <>
+      <div className="sh-statusbar right-home-statusbar">
+        <span className="sh-statusbar-time">6:48</span>
+        <div className="sh-statusbar-right">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#2a2a3a"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" strokeWidth="2"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 13v-2" strokeLinecap="round"/></svg>
+        </div>
+      </div>
+
+      <div className="right-home-header">
+        {selected ? (
+          <button
+            className="right-home-back-btn"
+            aria-label="홈으로 돌아가기"
+            onClick={() => {
+              setEditMode(false);
+              setSelectedCategory(null);
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18 9 12l6-6" />
+            </svg>
+          </button>
+        ) : null}
+        <span className="right-home-title">{selected?.title ?? 'Samsung Health'}</span>
+        <div className="right-home-actions">
+          <button className="sh-profile-btn" aria-label="프로필">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
+          <button
+            className="sh-more-btn right-home-more-btn"
+            aria-label="더보기"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="disc-menu-dot" />
+            <span className="disc-notify-dot" />
+          </button>
+        </div>
+      </div>
+
+      <div className={`sh-home-menu-layer${menuOpen ? ' open' : ''}`}>
+        <button
+          className="sh-home-menu-backdrop"
+          aria-label="메뉴 닫기"
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={() => setMenuOpen(false)}
+        />
+        <div className="sh-home-menu-panel" role="menu" aria-label="홈 더보기 메뉴" aria-hidden={!menuOpen}>
+          {homeMenuItems.map((item, i) => (
+            <button
+              key={item.label}
+              className={`sh-home-menu-item${i === 0 ? ' sh-home-menu-primary' : ''}`}
+              role="menuitem"
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span>{item.label}</span>
+              {item.hasBadge && <span className="sh-home-menu-badge" aria-label="새 소식" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selected ? (
+        <div className="sh-scroll home-scroll right-category-detail-scroll" onDragOver={handleScrollAreaDragOver}>
+          <section className={`right-category-hero right-category-hero-${selected.tone}`}>
+            <span className="right-category-label">{selected.title}</span>
+            <strong>{selected.subtitle}</strong>
+            <p>더 많은 정보를 한 곳에서 확인하고 필요한 기록으로 바로 이동하세요.</p>
+          </section>
+
+          <section className="right-detail-list" aria-label={`${selected.title} 상세 정보`}>
+            {orderedDetailItems.map((item) => (
+              <button
+                key={item.label}
+                className={`right-detail-row${editMode ? ' right-detail-row-editing' : ''}${draggedDetailItem === item.label ? ' dragging' : ''}`}
+                draggable={editMode}
+                onDragStart={(event) => handleDetailDragStart(event, item.label)}
+                onDragOver={handleDragOver}
+                onDrop={(event) => handleDetailDrop(event, item.label)}
+                onDragEnd={() => {
+                  setDraggedDetailItem(null);
+                  stopAutoScroll();
+                }}
+              >
+                {editMode ? (
+                  <span className="right-edit-select" aria-hidden="true" />
+                ) : (
+                  <span className="right-detail-icon" aria-hidden="true" />
+                )}
+                <span className="right-detail-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.meta}</small>
+                </span>
+                <span className="right-detail-value">{item.value}</span>
+                {editMode && <span className="right-drag-handle" aria-hidden="true">↕</span>}
+              </button>
+            ))}
+          </section>
+        </div>
+      ) : (
+        <div className="sh-scroll home-scroll right-home-scroll" onDragOver={handleScrollAreaDragOver}>
+          <section className="right-category-grid" aria-label="건강 정보 카테고리">
+            {orderedCategories.map((category) => (
+              <button
+                key={category.key}
+                className={`right-category-card right-category-card-${category.tone}${editMode ? ' right-category-card-editing' : ''}${draggedCategory === category.key ? ' dragging' : ''}`}
+                draggable={editMode}
+                onClick={() => {
+                  if (editMode) return;
+                  setSelectedCategory(category.key);
+                }}
+                onDragStart={(event) => handleDragStart(event, category.key)}
+                onDragOver={handleDragOver}
+                onDrop={(event) => handleDrop(event, category.key)}
+                onDragEnd={() => {
+                  setDraggedCategory(null);
+                  stopAutoScroll();
+                }}
+              >
+                <div className="right-category-card-head">
+                  {editMode && <span className="right-edit-select" aria-hidden="true" />}
+                  <div>
+                    <strong>{category.title}</strong>
+                    <span>{category.subtitle}</span>
+                  </div>
+                  <span className={editMode ? 'right-drag-handle' : 'right-category-arrow'} aria-hidden="true">
+                    {editMode ? '↕' : '›'}
+                  </span>
+                </div>
+                <div className="right-category-summary">
+                  {category.highlights.map((item) => (
+                    <span key={item.label}>
+                      <small>{item.label}</small>
+                      <strong>{item.value}</strong>
+                      <em>{item.meta}</em>
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </section>
+        </div>
+      )}
+
+      <button
+        type="button"
+        className={`sh-edit-home sh-edit-home-floating${editMode ? ' editing' : ''}`}
+        onClick={() => setEditMode((current) => !current)}
+      >
+        {editMode ? '편집 완료' : '홈 화면 편집'}
+      </button>
+
+      {showGuideModal && !selected && !editMode && (
+        <div
+          className={`right-guide-modal-layer${guideClosing ? ' closing' : ''}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="삼성 헬스 둘러보기"
+        >
+          <div className="right-guide-modal">
+            <div className="right-guide-modal-icon" aria-hidden="true">🌿</div>
+            <h2>삼성 헬스 둘러보기</h2>
+            <p>어떤 기능부터 사용해보시겠어요?</p>
+            <div className="right-guide-options">
+              <button type="button" onClick={() => handleGuideSelect('life')}>
+                <span>걸음 수 확인하기</span>
+                <strong>생활</strong>
+              </button>
+              <button type="button" onClick={() => handleGuideSelect('life')}>
+                <span>수면 기록 확인하기</span>
+                <strong>생활</strong>
+              </button>
+              <button type="button" onClick={() => handleGuideSelect('exercise')}>
+                <span>운동 기록 확인하기</span>
+                <strong>운동</strong>
+              </button>
+            </div>
+            <button type="button" className="right-guide-later-btn" onClick={() => handleGuideSelect(null)}>
+              나중에 보기
+            </button>
+            <button type="button" className="right-guide-never-btn" onClick={handleGuideDismissPermanently}>
+              다시 보지 않기
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -604,11 +1191,29 @@ function HomeContent({
 /* ───────── 메인 앱 콘텐츠 ───────── */
 const DEFAULT_NAV: Record<MainScreen, number> = { home: 0, together: 1, discover: 2, fitness: 3 };
 
-function SamsungHealthContent({ defaultScreen = 'home' }: { defaultScreen?: MainScreen }) {
+function SamsungHealthContent({
+  defaultScreen = 'home',
+  phoneSide,
+}: {
+  defaultScreen?: MainScreen;
+  phoneSide: PhoneSide;
+}) {
   const [screen, setScreen] = useState<AppScreen>(defaultScreen);
   const [previousScreen, setPreviousScreen] = useState<MainScreen>(defaultScreen);
   const [activeTab, setActiveTab] = useState(0);
   const [activeNav, setActiveNav] = useState(DEFAULT_NAV[defaultScreen]);
+  const [rightGuideShown, setRightGuideShown] = useState(false);
+  const [rightGuideDismissed, setRightGuideDismissed] = useState(false);
+  const [rightGuidePreferenceLoaded, setRightGuidePreferenceLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadGuidePreferenceTimer = window.setTimeout(() => {
+      setRightGuideDismissed(window.localStorage.getItem(RIGHT_GUIDE_DISMISSED_STORAGE_KEY) === 'true');
+      setRightGuidePreferenceLoaded(true);
+    }, 0);
+
+    return () => window.clearTimeout(loadGuidePreferenceTimer);
+  }, []);
 
   const handleNavClick = (i: number) => {
     setActiveNav(i);
@@ -630,11 +1235,23 @@ function SamsungHealthContent({ defaultScreen = 'home' }: { defaultScreen?: Main
     setActiveNav(DEFAULT_NAV[previousScreen]);
   };
 
+  const handleRightGuideDismissPermanently = () => {
+    setRightGuideDismissed(true);
+    window.localStorage.setItem(RIGHT_GUIDE_DISMISSED_STORAGE_KEY, 'true');
+  };
+
   return (
     <>
       <div className={`sh-screen${screen !== 'home' ? ` sh-screen-${screen}` : ''}`}>
-        {screen === 'home' && (
-          <HomeContent activeTab={activeTab} setActiveTab={setActiveTab} />
+        {phoneSide === 'right' && screen === 'home' && (
+          <RightHomeContent
+            shouldShowGuideModal={rightGuidePreferenceLoaded && !rightGuideShown && !rightGuideDismissed}
+            onGuideShown={() => setRightGuideShown(true)}
+            onGuideDismissPermanently={handleRightGuideDismissPermanently}
+          />
+        )}
+        {phoneSide === 'left' && screen === 'home' && (
+          <HomeContent activeTab={activeTab} setActiveTab={setActiveTab} phoneSide={phoneSide} />
         )}
         {screen === 'together' && <TogetherContent />}
         {screen === 'discover' && <DiscoverContent />}
@@ -655,16 +1272,22 @@ function SamsungHealthContent({ defaultScreen = 'home' }: { defaultScreen?: Main
   );
 }
 
-function PhoneMockup({ defaultScreen = 'home' }: { defaultScreen?: MainScreen }) {
+function PhoneMockup({
+  defaultScreen = 'home',
+  side,
+}: {
+  defaultScreen?: MainScreen;
+  side: PhoneSide;
+}) {
   return (
-    <div className="desktop-phone-wrap">
+    <div className={`desktop-phone-wrap phone-${side}`}>
       <div className="desktop-phone-glow" />
       <div className="d-phone">
         <div className="d-phone-island">
           <div className="d-phone-island-cam" />
         </div>
         <div className="d-phone-screen">
-          <SamsungHealthContent defaultScreen={defaultScreen} />
+          <SamsungHealthContent defaultScreen={defaultScreen} phoneSide={side} />
         </div>
       </div>
     </div>
@@ -687,9 +1310,9 @@ export default function AppView() {
   return (
     <div className="app-shell">
       <div className="phones-row">
-        <PhoneMockup defaultScreen="home" />
+        <PhoneMockup defaultScreen="home" side="left" />
         <PhoneArrowDivider />
-        <PhoneMockup defaultScreen="discover" />
+        <PhoneMockup defaultScreen="home" side="right" />
       </div>
     </div>
   );
