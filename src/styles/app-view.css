@@ -43,23 +43,27 @@ html, body { height: 100%; overflow: hidden; }
 .phones-arrow {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 56px;
+  transform: translateX(-3px);
   color: #3a3a5a;
+  line-height: 1;
+  opacity: 0.72;
 }
 
 .phones-arrow-shaft {
-  width: 48px;
+  width: 36px;
   height: 2px;
   background: currentColor;
-  border-radius: 1px;
-  opacity: 0.55;
+  border-radius: 999px;
+  transform: translateY(1px);
 }
 
 .phones-arrow-head {
-  font-size: 2rem;
-  font-weight: 300;
-  line-height: 1;
-  margin-left: -4px;
-  opacity: 0.75;
+  margin-left: -1px;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 0.85;
 }
 
 .phones-arrow-label {
@@ -1075,6 +1079,74 @@ html, body { height: 100%; overflow: hidden; }
   height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, #76d796, #6a8df5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.08);
+}
+
+.right-detail-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.right-detail-icon-exercise,
+.right-detail-icon-workout,
+.right-detail-icon-energy {
+  background: linear-gradient(135deg, #48c77d, #5aa8ff);
+}
+
+.right-detail-icon-heart,
+.right-detail-icon-pressure,
+.right-detail-icon-sugar,
+.right-detail-icon-glycemic,
+.right-detail-icon-oxygen,
+.right-detail-icon-cardiac,
+.right-detail-icon-stress,
+.right-detail-icon-vitals,
+.right-detail-icon-vascular {
+  background: linear-gradient(135deg, #ff6f9d, #8b78ff);
+}
+
+.right-detail-icon-food,
+.right-detail-icon-water {
+  background: linear-gradient(135deg, #ffb347, #ff7d6e);
+}
+
+.right-detail-icon-activity,
+.right-detail-icon-steps,
+.right-detail-icon-sleep,
+.right-detail-icon-weight,
+.right-detail-icon-medicine,
+.right-detail-icon-period,
+.right-detail-icon-records,
+.right-detail-icon-anti {
+  background: linear-gradient(135deg, #61d69a, #6d8dff);
+}
+
+.right-detail-icon-energy {
+  background: linear-gradient(135deg, #ffb84d, #ff6f61);
+}
+
+.right-detail-icon-sleep {
+  background: linear-gradient(135deg, #6467dd, #9d7cff);
+}
+
+.right-detail-icon-water,
+.right-detail-icon-oxygen {
+  background: linear-gradient(135deg, #39c7d8, #4f8dff);
+}
+
+.right-detail-icon-medicine,
+.right-detail-icon-anti {
+  background: linear-gradient(135deg, #53c86b, #38b8b0);
+}
+
+.right-detail-icon-period,
+.right-detail-icon-heart,
+.right-detail-icon-cardiac {
+  background: linear-gradient(135deg, #ff6f92, #ff9ab8);
 }
 
 .right-detail-copy {

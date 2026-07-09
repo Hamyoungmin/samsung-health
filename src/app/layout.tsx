@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'MEP — 더 스마트한 웹&앱 플랫폼',
-  description: 'MEP는 현대적인 웹&앱 플랫폼으로, 여러분의 아이디어를 빠르고 안정적으로 현실로 만들어 드립니다.',
-  keywords: ['웹', '앱', '플랫폼', 'Next.js', 'Firebase'],
+  title: 'Samsung Health Home Screen',
+  description: 'Samsung Health home screen redesign focused on personalized health categories, quick guidance, and editable content order.',
+  keywords: ['Samsung Health', 'home screen', 'health app', 'redesign', 'Next.js'],
   openGraph: {
-    title: 'MEP — 더 스마트한 웹&앱 플랫폼',
-    description: '더 빠르고 스마트하게 성장할 수 있도록 돕는 올인원 웹&앱 플랫폼',
+    title: 'Samsung Health Home Screen',
+    description: 'A redesigned Samsung Health home screen experience with personalized categories and guided discovery.',
     type: 'website',
   },
 };

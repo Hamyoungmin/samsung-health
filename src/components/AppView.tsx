@@ -313,6 +313,109 @@ function normalizeDetailOrders(value: unknown) {
   }, {} as Record<RightHomeCategoryKey, string[]>);
 }
 
+const rightDetailIcons: Record<string, { tone: string; icon: ReactNode }> = {
+  운동: {
+    tone: 'exercise',
+    icon: <><circle cx="16" cy="5" r="2" /><path d="M8 21l3.2-6.5-3-3.2-4.2 4.1" /><path d="M12 9l3.5 3 3.5-1.2" /><path d="M10 7.2l4.5 1.8" /></>,
+  },
+  '이번 주 운동 기록': {
+    tone: 'workout',
+    icon: <><circle cx="12" cy="13" r="7" /><path d="M12 13l3-2" /><path d="M9 2h6" /><path d="M12 6v7" /></>,
+  },
+  '에너지 점수': {
+    tone: 'energy',
+    icon: <path d="M13 2 5 13h6l-1 9 9-13h-6l1-7z" />,
+  },
+  심박수: {
+    tone: 'heart',
+    icon: <><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z" /><path d="M4 12h4l2-4 3 8 2-4h5" /></>,
+  },
+  혈압: {
+    tone: 'pressure',
+    icon: <><path d="M5 13a7 7 0 1 1 12.1 4.8" /><path d="M12 13l4-4" /><path d="M8 20h8" /></>,
+  },
+  혈당: {
+    tone: 'sugar',
+    icon: <><path d="M12 3s6 6.7 6 11a6 6 0 0 1-12 0c0-4.3 6-11 6-11z" /><circle cx="14.5" cy="15" r="1.8" /></>,
+  },
+  '최종당화물 지수(HbA1c)': {
+    tone: 'glycemic',
+    icon: <><path d="M4 19V5" /><path d="M4 19h16" /><path d="M7 16l3-4 3 2 4-7" /><path d="M17 7h3v3" /></>,
+  },
+  '혈중 산소': {
+    tone: 'oxygen',
+    icon: <><circle cx="9" cy="15" r="4" /><circle cx="16" cy="9" r="3" /><circle cx="17" cy="17" r="2" /></>,
+  },
+  '심장 건강': {
+    tone: 'cardiac',
+    icon: <><path d="M12 3 5 6v5c0 4.6 3 8.3 7 10 4-1.7 7-5.4 7-10V6l-7-3z" /><path d="M8 12h2l1-2 2 5 1-3h2" /></>,
+  },
+  스트레스: {
+    tone: 'stress',
+    icon: <><circle cx="12" cy="12" r="7" /><path d="M9 10h.01M15 10h.01" /><path d="M9 15c1.7-1.2 4.3-1.2 6 0" /></>,
+  },
+  '생체 징후': {
+    tone: 'vitals',
+    icon: <><path d="M12 3v18" /><path d="M5 8h14" /><path d="M7 16h10" /><path d="M9 6v4M15 14v4" /></>,
+  },
+  '혈관 스트레스': {
+    tone: 'vascular',
+    icon: <><path d="M4 13c4-6 7 6 11 0 1.5-2.2 3-2.7 5-1" /><path d="M4 17c4-6 7 6 11 0 1.5-2.2 3-2.7 5-1" /></>,
+  },
+  음식: {
+    tone: 'food',
+    icon: <><path d="M7 3v8" /><path d="M4 3v5a3 3 0 0 0 6 0V3" /><path d="M7 11v10" /><path d="M17 3v18" /><path d="M14 8c0-3 1.5-5 3-5" /></>,
+  },
+  물: {
+    tone: 'water',
+    icon: <><path d="M7 4h10l-1.2 16H8.2L7 4z" /><path d="M8 9h8" /><path d="M9 14c2 1 4 1 6 0" /></>,
+  },
+  '일일 활동': {
+    tone: 'activity',
+    icon: <><path d="M12 5a7 7 0 1 1-6.2 10.2" /><path d="M12 8a4 4 0 1 1-3.5 5.8" /><path d="M12 11a1 1 0 1 1-.9 1.5" /></>,
+  },
+  걸음: {
+    tone: 'steps',
+    icon: <><path d="M8 13c-2.4.2-3.8 1.3-3.8 3.1 0 1.3 1 2.1 2.4 2.1 2.1 0 3.4-1.8 3.4-4 0-.8-.7-1.2-2-1.2z" /><path d="M16 5c-2.2.2-3.4 1.2-3.4 2.9 0 1.2.9 2 2.2 2 2 0 3.1-1.7 3.1-3.7 0-.8-.6-1.2-1.9-1.2z" /></>,
+  },
+  수면: {
+    tone: 'sleep',
+    icon: <><path d="M20 13.1A7 7 0 1 1 10.9 4a5.5 5.5 0 0 0 9.1 9.1z" /><path d="M5 19h14" /></>,
+  },
+  '체중/체성분': {
+    tone: 'weight',
+    icon: <><rect x="5" y="6" width="14" height="13" rx="3" /><path d="M9 10a3 3 0 0 1 6 0" /><path d="M12 10l2-2" /></>,
+  },
+  약: {
+    tone: 'medicine',
+    icon: <><rect x="5" y="10" width="14" height="7" rx="3.5" transform="rotate(-45 12 13.5)" /><path d="M10 16 8 14" /></>,
+  },
+  '생리 주기': {
+    tone: 'period',
+    icon: <><circle cx="12" cy="12" r="3" /><path d="M12 4v3M12 17v3M4 12h3M17 12h3M6.6 6.6l2.1 2.1M15.3 15.3l2.1 2.1M17.4 6.6l-2.1 2.1M8.7 15.3l-2.1 2.1" /></>,
+  },
+  '건강 기록': {
+    tone: 'records',
+    icon: <><path d="M8 4h8l1 2h2v15H5V6h2l1-2z" /><path d="M9 11h6M9 15h4" /></>,
+  },
+  '항산화 지수': {
+    tone: 'anti',
+    icon: <><path d="M12 20c4-2 6-5 6-9 0-3-2.2-5-5-5-1.7 0-3.1.8-4 2.1" /><path d="M12 20c-4-2-6-5-6-9 0-2.3 1.2-4 3-4.7" /><path d="M12 7c1-2 2.5-3 5-3" /></>,
+  },
+};
+
+function RightDetailIcon({ label }: { label: string }) {
+  const detailIcon = rightDetailIcons[label] ?? rightDetailIcons['건강 기록'];
+
+  return (
+    <span className={`right-detail-icon right-detail-icon-${detailIcon.tone}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        {detailIcon.icon}
+      </svg>
+    </span>
+  );
+}
+
 const togetherMenuItems = [
   { label: '프로모션', hasBadge: true },
   { label: '공지사항', hasBadge: true },
@@ -1085,7 +1188,7 @@ function RightHomeContent({
                 {editMode ? (
                   <span className="right-edit-select" aria-hidden="true" />
                 ) : (
-                  <span className="right-detail-icon" aria-hidden="true" />
+                  <RightDetailIcon label={item.label} />
                 )}
                 <span className="right-detail-copy">
                   <strong>{item.label}</strong>
@@ -1299,7 +1402,7 @@ function PhoneArrowDivider() {
     <div className="phones-divider">
       <div className="phones-arrow" aria-hidden="true">
         <span className="phones-arrow-shaft" />
-        <span className="phones-arrow-head">›</span>
+        <span className="phones-arrow-head">&gt;</span>
       </div>
       <span className="phones-arrow-label">After</span>
     </div>
